@@ -104,31 +104,32 @@ if "item" in st.query_params:
     st.session_state.pending_item = st.query_params["item"]
 
 # ======================== التحقق من الترخيص (مع إمكانية التجاوز في السحابة) ========================
-# تعطيل الترخيص نهائياً على السحابة
 # ======================== التحقق من الترخيص ========================
-# يتم تجاوز الترخيص تلقائياً في بيئة السحابة
 if "license_checked" not in st.session_state:
-    # محاولة تجاوز الترخيص في السحابة بأي طريقة
+    # التحقق مما إذا كنا في بيئة Streamlit Cloud
+    # عن طريق محاولة قراءة متغيرات البيئة الخاصة بـ Streamlit
     is_cloud = False
     try:
-        # التحقق من وجود متغيرات بيئة خاصة بـ Streamlit Cloud
-        if os.environ.get("STREAMLIT_SERVER") or os.environ.get("STREAMLIT_SHARING") or os.environ.get("STREAMLIT_DEPLOYMENT"):
+        # الطريقة الأكثر موثوقية: التحقق من وجود مجلد "/mount/src" الذي يوجد فقط في Streamlit Cloud
+        if os.path.exists("/mount/src"):
+            is_cloud = True
+        # طريقة احتياطية: التحقق من متغيرات البيئة
+        elif os.environ.get("STREAMLIT_SERVER") or os.environ.get("STREAMLIT_SHARING"):
             is_cloud = True
     except:
         pass
     
     if is_cloud:
+        # في السحابة، نتجاوز الترخيص نهائياً
         st.session_state.license_checked = True
     else:
-        # التشغيل المحلي فقط يطلب الترخيص
+        # في الجهاز المحلي، نطلب الترخيص
         valid, msg = verify_license()
         if not valid:
             st.error(f"⚠️ {msg}")
             st.markdown(f"<div style='text-align:center; padding:2rem;'><h3>هذا البرنامج مرخص فقط لمالكه الحصري</h3><p>للحصول على ترخيص صحيح، يرجى الاتصال برقم الدعم: <strong>{OWNER_PHONE}</strong></p></div>", unsafe_allow_html=True)
             st.stop()
-        st.session_state.license_checked = True
-
-# ======================== CSS ========================
+        st.session_state.license_checked = True# ======================== CSS ========================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap');
