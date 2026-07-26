@@ -105,10 +105,12 @@ if "item" in st.query_params:
 
 # ======================== التحقق من الترخيص (مع إمكانية التجاوز في السحابة) ========================
 if "license_checked" not in st.session_state:
-    # في بيئة Streamlit Cloud، يمكن تخطي الترخيص لتسهيل النشر
-    if os.environ.get("STREAMLIT_SERVER") or os.environ.get("STREAMLIT_CLOUD"):
+    # في بيئة Streamlit Cloud، يتم تجاوز الترخيص تلقائياً
+    # (لأنه لا يمكن وضع ملف license.key في السحابة بسهولة)
+    if os.environ.get("STREAMLIT_SHARING") or os.environ.get("STREAMLIT_CLOUD") or os.environ.get("IS_CLOUD"):
         st.session_state.license_checked = True
     else:
+        # التشغيل المحلي: يطلب الترخيص
         valid, msg = verify_license()
         if not valid:
             st.error(f"⚠️ {msg}")
