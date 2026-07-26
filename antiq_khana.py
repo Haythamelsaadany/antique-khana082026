@@ -104,6 +104,9 @@ if "item" in st.query_params:
     st.session_state.pending_item = st.query_params["item"]
 
 # ======================== التحقق من الترخيص (مع إمكانية التجاوز في السحابة) ========================
+# تعطيل الترخيص نهائياً على السحابة
+if os.environ.get("STREAMLIT_SHARING"):
+    st.session_state.license_checked = True
 if "license_checked" not in st.session_state:
     # في بيئة Streamlit Cloud، يتم تجاوز الترخيص تلقائياً
     # (لأنه لا يمكن وضع ملف license.key في السحابة بسهولة)
